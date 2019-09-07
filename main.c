@@ -22,7 +22,7 @@ void printBoldError(char string[], int length, int lastOpen, int errorLoc) {
         else if (i == errorLoc) printf("\e[1m%c\e[0m", string[i]);
         else printf("%c", string[i]);
     }
-    printf("\n");
+    printf(" - ");
 }
 
 /**********************************************
