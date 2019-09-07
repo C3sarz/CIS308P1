@@ -11,12 +11,13 @@
 #include <string.h>
 
 /**********************************************
-* Description: *
-* Input: *
-* Output: *
+* Description: *Prints the full operation with the mismatch highlighted in bold.
+* Input: *Takes in the operation string, its length, the last open bracket location, and the mismatch location.
+* Output: *No output but prints into the console.
 ***********************************************/
 void printBoldError(char string[], int length, int lastOpen, int errorLoc) {
     for (int i = 0; i < length; i++) {
+        //printf("0");
         if (i == lastOpen) printf("\e[1m%c\e[0m", string[i]);
         else if (i == errorLoc) printf("\e[1m%c\e[0m", string[i]);
         else printf("%c", string[i]);
@@ -27,70 +28,85 @@ void printBoldError(char string[], int length, int lastOpen, int errorLoc) {
 /**********************************************
 * Description: *Validates the operation given by checking for bracket order.
 * Input: *The operation to be validated (a string), and its length.
-* Output: *Nothing, as it only validates the operations.
+* Output: *A number that is used later y the switch for the onsole output.
 ***********************************************/
-void validateOperation(char op[], int length) {
+int validateOperation(char op[], int length) {
     int position, lastOpenBracket = 0; //makeshift stack counters.
     char charStack[36];
+    int bracketLoc[36];
 //    char errorShow[36];
-    if (length > 1) {
-        printf("String is %s with length %d \n", op, length); //debug
+        //printf("String is %s with length %d \n", op, length); //debug
+        position = 0;
         for (int i = 0; i < length; i++) {
             char currentChar = op[i];
             switch (currentChar) {
                 case ' ':
                     break;
                 case '{':
-                    lastOpenBracket = i;
+                    //lastOpenBracket = i;
                     charStack[position] = '{';
+                    bracketLoc[position] = i;
                     position++;
                     break;
                 case '[':
-                    lastOpenBracket = i;
+                    //lastOpenBracket = i;
                     charStack[position] = '[';
+                    bracketLoc[position] = i;
                     position++;
                     break;
                 case '(':
-                    lastOpenBracket = i;
+                    //lastOpenBracket = i;
                     charStack[position] = '(';
+                    bracketLoc[position] = i;
                     position++;
                     break;
                 case '}':
+                    if (position == 0) {
+                        //printf("Position is negative (debug)\n");
+                        return 3;
+                    }
                     if (charStack[position - 1] != '{') {
                         //printf("bracket mismatch '}'\n"); //debug
-                        printBoldError(op, length, lastOpenBracket, i);
-                        return;
+                        printBoldError(op, length, bracketLoc[position-1], i);
+                        return 1;
                     } else {
                         position--;
                     }
                     break;
                 case ']':
+                    if (position == 0) {
+                        //printf("Position is negative (debug)\n");
+                        return 3;
+                    }
                     if (charStack[position - 1] != '[') {
                         //printf("bracket mismatch ']'\n");
-                        printBoldError(op, length, lastOpenBracket, i);
-                        return;
+                        printBoldError(op, length, bracketLoc[position-1], i);
+                        return 1;
                     } else {
                         position--;
                     }
                     break;
                 case ')':
+                    if (position == 0) {
+                        //printf("Position is negative (debug)\n");
+                        return 3;
+                    }
                     if (charStack[position - 1] != '(') {
                         //printf("bracket mismatch ')'\n");
-                        printBoldError(op, length, lastOpenBracket, i);
-                        return;
+                        printBoldError(op, length, bracketLoc[position-1], i);
+                        return 1;
                     } else {
                         position--;
                     }
                     break;
                 default:
-                    printf("invalid char %c\n", &currentChar);
-                    return;
+                    //printf("invalid char %c\n", &currentChar);
+                    return 2;
             }
         }
-//        if(position > 0) printf("The operation is missing brackets (pos:%d) !\n",position);
-
-    }
-//return 0;
+        if(position != 0) return 3;
+        //printf("%d",position);
+return 0;
 }
 
 /**********************************************
@@ -123,8 +139,28 @@ int main(int argc, char *argv[]) {
     }
     for (int i = 1; i <= caseN; i++) //no error checking
     {
-        fscanf(fp, "%s", operation);
-        validateOperation(operation, strlen(operation)); //validation of sequences.
+        int status;
+        if(fscanf(fp, "%s", operation) != EOF) {
+            status = validateOperation(operation, strlen(operation)); //validation of sequences.
+        }
+        else status = 99;
+        switch(status){
+            case 0:
+                printf("Operation %d is valid.\n",i);
+                break;
+            case 1:
+                printf("Operation %d is not valid (bracket mismatch).\n",i);
+                break;
+            case 2:
+                printf("Operation %d is not valid (invalid character or invalid size).\n",i);
+                break;
+            case 3:
+                printf("Operation %d is not valid (missing brackets or too many brackets).\n",i);
+                break;
+            default:
+                printf("Empty line.\n");
+            break;
+        }
     }
 
     fclose(fp);
